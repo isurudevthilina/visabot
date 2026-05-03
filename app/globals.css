@@ -163,6 +163,20 @@ body {
   background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
 }
 
+/* Shimmer animation for loading */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
 /* Smooth scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
