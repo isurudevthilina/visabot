@@ -19,8 +19,10 @@ const features = [
   {
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 12a9 9 0 11-9-9" />
-        <polyline points="21 3 21 9 15 9" />
+        <path d="M23 4v6h-6" />
+        <path d="M1 20v-6h6" />
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10" />
+        <path d="M20.49 15a9 9 0 01-14.85 3.36L1 14" />
       </svg>
     ),
     title: "Real-Time Rules",
