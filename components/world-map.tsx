@@ -85,9 +85,23 @@ export function WorldMap({ className = "", selectedCountry, destinationCountry }
     offset: ["start start", "end start"],
   });
 
-  // Parallax transforms
-  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
-  const scale = useTransform(scrollYProgress, [0, 0.5], [1, 1.05]);
+  // Multi-layer parallax transforms - different speeds for depth effect
+  const mapY = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const mapScale = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.08, 1.15]);
+  const mapRotate = useTransform(scrollYProgress, [0, 1], [0, 2]);
+  
+  // Grid moves slower (background layer)
+  const gridY = useTransform(scrollYProgress, [0, 1], [0, 80]);
+  const gridOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.5, 0.7, 0.4, 0.2]);
+  
+  // Continents move at medium speed
+  const continentsY = useTransform(scrollYProgress, [0, 1], [0, 120]);
+  
+  // Highlights/pins move faster (foreground layer)
+  const highlightsY = useTransform(scrollYProgress, [0, 1], [0, 160]);
+  
+  // Overall opacity fade as you scroll
+  const overallOpacity = useTransform(scrollYProgress, [0, 0.8, 1], [1, 0.6, 0.3]);
 
   const selectedRegion = selectedCountry ? countryRegions[selectedCountry] : null;
   const destinationRegion = destinationCountry ? countryRegions[destinationCountry] : null;
@@ -95,7 +109,12 @@ export function WorldMap({ className = "", selectedCountry, destinationCountry }
   return (
     <div ref={containerRef} className={`absolute inset-0 overflow-hidden ${className}`}>
       <motion.div
-        style={{ y, scale }}
+        style={{ 
+          y: mapY, 
+          scale: mapScale, 
+          rotate: mapRotate,
+          opacity: overallOpacity 
+        }}
         className="map-breathe absolute inset-0 flex items-center justify-center"
         animate={{ opacity: selectedRegion || destinationRegion ? 0.7 : 0.4 }}
         transition={{ duration: 0.5 }}
@@ -105,6 +124,7 @@ export function WorldMap({ className = "", selectedCountry, destinationCountry }
           className="h-full w-full"
           preserveAspectRatio="xMidYMid slice"
           aria-hidden="true"
+          style={{ overflow: "visible" }}
         >
           <defs>
             {/* Gradient for path line */}
@@ -131,20 +151,32 @@ export function WorldMap({ className = "", selectedCountry, destinationCountry }
           {/* Background */}
           <rect width="600" height="300" fill="#FAF9F6" />
 
-          {/* Grid lines for subtle texture */}
-          <g stroke="#e8e6e1" strokeWidth="0.3" opacity="0.5">
+          {/* Grid lines for subtle texture - slowest parallax layer */}
+          <motion.g 
+            stroke="#e8e6e1" 
+            strokeWidth="0.3"
+            style={{ 
+              y: gridY,
+              opacity: gridOpacity 
+            }}
+          >
             {/* Horizontal lines */}
-            {[50, 100, 150, 200, 250].map((y) => (
-              <line key={`h-${y}`} x1="0" y1={y} x2="600" y2={y} />
+            {[50, 100, 150, 200, 250].map((yPos) => (
+              <line key={`h-${yPos}`} x1="0" y1={yPos} x2="600" y2={yPos} />
             ))}
             {/* Vertical lines */}
             {[100, 200, 300, 400, 500].map((x) => (
               <line key={`v-${x}`} x1={x} y1="0" x2={x} y2="300" />
             ))}
-          </g>
+          </motion.g>
 
-          {/* Continent paths */}
-          <g fill="#f0eeea" stroke="#d4cfc7" strokeWidth="1.5">
+          {/* Continent paths - medium parallax layer */}
+          <motion.g 
+            fill="#f0eeea" 
+            stroke="#d4cfc7" 
+            strokeWidth="1.5"
+            style={{ y: continentsY }}
+          >
             {Object.entries(continentPaths).map(([name, path]) => (
               <motion.path
                 key={name}
@@ -154,8 +186,10 @@ export function WorldMap({ className = "", selectedCountry, destinationCountry }
                 transition={{ duration: 1, delay: 0.1 }}
               />
             ))}
-          </g>
+          </motion.g>
 
+          {/* Interactive elements - fastest parallax layer (foreground) */}
+          <motion.g style={{ y: highlightsY }}>
           {/* Selected country highlight (passport) */}
           {selectedRegion && (
             <g>
@@ -298,6 +332,7 @@ export function WorldMap({ className = "", selectedCountry, destinationCountry }
               <text x={destinationRegion.cx} y={destinationRegion.cy - 16} textAnchor="middle" fill="#fff" fontSize="8" fontWeight="600">DESTINATION</text>
             </motion.g>
           )}
+          </motion.g>
         </svg>
       </motion.div>
     </div>
