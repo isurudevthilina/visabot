@@ -1,62 +1,90 @@
+import Image from "next/image";
+
 export default function Loading() {
   return (
-    <div className="min-h-screen gradient-mesh flex items-center justify-center">
-      <div className="flex flex-col items-center gap-8">
-        {/* Animated Logo */}
+    <div className="min-h-screen gradient-mesh flex items-center justify-center px-4">
+      <div className="flex flex-col items-center gap-10">
+        {/* Passport scan illustration with animated overlays */}
         <div className="relative">
-          {/* Outer rotating ring */}
-          <div className="absolute inset-0 w-24 h-24 rounded-full border-2 border-transparent border-t-accent border-r-accent/50 animate-spin" />
-          
-          {/* Middle pulsing ring */}
-          <div className="absolute inset-2 w-20 h-20 rounded-full border border-accent/30 animate-pulse" />
-          
-          {/* Inner glowing core */}
-          <div className="w-24 h-24 rounded-full glass flex items-center justify-center">
-            <div className="relative">
-              {/* Globe icon */}
-              <svg 
-                className="w-10 h-10 text-accent animate-pulse" 
-                fill="none" 
-                stroke="currentColor" 
+          {/* Outer glow ring */}
+          <div className="absolute -inset-6 rounded-full bg-blue-500/10 blur-2xl animate-pulse" />
+
+          {/* Rotating scan ring */}
+          <div className="absolute -inset-4 rounded-2xl border-2 border-transparent border-t-blue-500/60 border-r-blue-400/30 animate-[spin_3s_linear_infinite]" />
+
+          {/* Second rotating ring (opposite direction) */}
+          <div className="absolute -inset-2 rounded-xl border border-transparent border-b-indigo-500/40 border-l-indigo-400/20 animate-[spin_4s_linear_infinite_reverse]" />
+
+          {/* Passport image */}
+          <div className="relative h-48 w-48 overflow-hidden rounded-xl">
+            <Image
+              src="/images/passport-scan-loader.jpg"
+              alt="Passport being scanned"
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Scan line overlay */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="scan-line absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-400/80 to-transparent shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+            </div>
+            {/* Glass overlay */}
+            <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px]" />
+            {/* Corner accents */}
+            <div className="absolute left-2 top-2 h-4 w-4 border-l-2 border-t-2 border-blue-400/60 rounded-tl-sm" />
+            <div className="absolute right-2 top-2 h-4 w-4 border-r-2 border-t-2 border-blue-400/60 rounded-tr-sm" />
+            <div className="absolute bottom-2 left-2 h-4 w-4 border-b-2 border-l-2 border-blue-400/60 rounded-bl-sm" />
+            <div className="absolute bottom-2 right-2 h-4 w-4 border-b-2 border-r-2 border-blue-400/60 rounded-br-sm" />
+          </div>
+        </div>
+
+        {/* App name and status */}
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25">
+              <svg
+                className="size-4"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <circle cx="12" cy="12" r="10" strokeWidth="1.5" />
-                <path 
-                  strokeWidth="1.5" 
-                  strokeLinecap="round" 
-                  d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" 
+                <path
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
                 />
               </svg>
-              
-              {/* Orbiting dot */}
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full animate-bounce shadow-lg shadow-accent/50" />
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-tight">
+              VisaBot
+            </h2>
+          </div>
+
+          {/* Cycling status messages */}
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="relative flex size-2 items-center justify-center">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-blue-400 opacity-50" />
+                <span className="relative inline-flex size-2 rounded-full bg-blue-500" />
+              </div>
+              <p className="text-sm text-slate-400 animate-pulse">
+                Initializing visa intelligence...
+              </p>
             </div>
           </div>
-          
-          {/* Glow effect */}
-          <div className="absolute inset-0 w-24 h-24 rounded-full bg-accent/20 blur-xl animate-pulse" />
         </div>
-        
-        {/* Loading text */}
-        <div className="flex flex-col items-center gap-3">
-          <h2 className="text-xl font-medium text-foreground tracking-tight">
-            VisaBot
-          </h2>
-          
-          {/* Animated dots */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Loading</span>
-            <span className="flex gap-1">
-              <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-            </span>
-          </div>
-        </div>
-        
+
         {/* Progress bar */}
-        <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-accent via-purple-500 to-accent bg-[length:200%_100%] animate-shimmer rounded-full" />
+        <div className="w-64">
+          <div className="h-1 overflow-hidden rounded-full bg-slate-800">
+            <div className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 bg-[length:200%_100%] animate-shimmer rounded-full" />
+          </div>
+          <div className="mt-3 flex justify-between text-xs text-slate-600">
+            <span>Loading application</span>
+            <span className="loading-dots">Please wait</span>
+          </div>
         </div>
       </div>
     </div>

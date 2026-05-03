@@ -38,7 +38,9 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Animated gradient mesh background */
+/* ================================================================== */
+/*  Animated gradient mesh background                                  */
+/* ================================================================== */
 @keyframes gradient-shift {
   0%, 100% {
     background-position: 0% 50%;
@@ -49,7 +51,7 @@ body {
 }
 
 .gradient-mesh {
-  background: 
+  background:
     radial-gradient(ellipse at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 60%),
@@ -58,7 +60,9 @@ body {
   animation: gradient-shift 15s ease infinite;
 }
 
-/* Glassmorphism effect */
+/* ================================================================== */
+/*  Glassmorphism                                                      */
+/* ================================================================== */
 .glass {
   background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(12px);
@@ -73,18 +77,24 @@ body {
   border: 1px solid rgba(148, 163, 184, 0.15);
 }
 
-/* Glow effects */
+/* ================================================================== */
+/*  Glow effects                                                       */
+/* ================================================================== */
 .glow-border {
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.3),
-              0 0 20px -5px rgba(59, 130, 246, 0.2);
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.3),
+    0 0 20px -5px rgba(59, 130, 246, 0.2);
 }
 
 .glow-border-focus:focus-within {
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5),
-              0 0 30px -5px rgba(59, 130, 246, 0.3);
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.5),
+    0 0 30px -5px rgba(59, 130, 246, 0.3);
 }
 
-/* Pulsing animation for status dots */
+/* ================================================================== */
+/*  Pulsing status dots                                                */
+/* ================================================================== */
 @keyframes pulse-ring {
   0% {
     transform: scale(1);
@@ -97,7 +107,7 @@ body {
 }
 
 .pulse-dot::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: 50%;
@@ -116,7 +126,9 @@ body {
   background: rgba(239, 68, 68, 0.4);
 }
 
-/* Floating animation for empty state */
+/* ================================================================== */
+/*  Floating animation                                                 */
+/* ================================================================== */
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -130,7 +142,9 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
-/* Progress bar animation */
+/* ================================================================== */
+/*  Progress bar streaming                                             */
+/* ================================================================== */
 @keyframes progress-stream {
   0% {
     transform: translateX(-100%);
@@ -141,14 +155,21 @@ body {
 }
 
 .progress-stream::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   animation: progress-stream 1.5s ease-in-out infinite;
 }
 
-/* Card hover lift effect */
+/* ================================================================== */
+/*  Card hover lift                                                    */
+/* ================================================================== */
 .card-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -158,12 +179,16 @@ body {
   box-shadow: 0 8px 30px -10px rgba(0, 0, 0, 0.3);
 }
 
-/* Timeline connecting line */
+/* ================================================================== */
+/*  Timeline connecting line                                           */
+/* ================================================================== */
 .timeline-line {
   background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
 }
 
-/* Shimmer animation for loading */
+/* ================================================================== */
+/*  Shimmer for loading skeletons                                      */
+/* ================================================================== */
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -177,7 +202,81 @@ body {
   animation: shimmer 2s linear infinite;
 }
 
-/* Smooth scrollbar */
+/* ================================================================== */
+/*  Scan line for loading page                                         */
+/* ================================================================== */
+@keyframes scan-line {
+  0% {
+    top: -4px;
+  }
+  50% {
+    top: calc(100% + 4px);
+  }
+  50.01% {
+    top: -4px;
+  }
+  100% {
+    top: calc(100% + 4px);
+  }
+}
+
+.scan-line {
+  animation: scan-line 2.5s ease-in-out infinite;
+}
+
+/* ================================================================== */
+/*  Loading dots                                                       */
+/* ================================================================== */
+.loading-dots::after {
+  content: "";
+  animation: dots 1.5s steps(3, end) infinite;
+}
+
+@keyframes dots {
+  0% {
+    content: "";
+  }
+  33% {
+    content: ".";
+  }
+  66% {
+    content: "..";
+  }
+  100% {
+    content: "...";
+  }
+}
+
+/* ================================================================== */
+/*  Print styles                                                       */
+/* ================================================================== */
+@media print {
+  .gradient-mesh {
+    background: white !important;
+    animation: none !important;
+  }
+
+  .glass,
+  .glass-card {
+    background: white !important;
+    backdrop-filter: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  * {
+    color: #1e293b !important;
+  }
+}
+
+/* ================================================================== */
+/*  Smooth scrollbar                                                   */
+/* ================================================================== */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -195,4 +294,11 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.5);
+}
+
+/* ================================================================== */
+/*  Smooth scroll behavior                                             */
+/* ================================================================== */
+html {
+  scroll-behavior: smooth;
 }
