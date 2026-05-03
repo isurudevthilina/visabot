@@ -37,32 +37,45 @@ const continentPaths = {
   centralAmerica: "M 100,130 L 130,125 L 145,135 L 140,150 L 120,160 L 100,155 L 95,140 Z",
 };
 
-// Country highlight regions (simplified)
+// Country highlight regions - all supported countries
 const countryRegions: Record<string, { cx: number; cy: number; r: number }> = {
-  "United States": { cx: 130, cy: 95, r: 25 },
-  "Canada": { cx: 130, cy: 65, r: 25 },
-  "United Kingdom": { cx: 275, cy: 68, r: 12 },
-  "India": { cx: 415, cy: 125, r: 20 },
-  "China": { cx: 470, cy: 90, r: 25 },
-  "Japan": { cx: 530, cy: 85, r: 12 },
-  "Australia": { cx: 520, cy: 205, r: 25 },
-  "Germany": { cx: 310, cy: 70, r: 10 },
-  "France": { cx: 290, cy: 78, r: 10 },
-  "Brazil": { cx: 145, cy: 200, r: 25 },
-  "South Africa": { cx: 315, cy: 210, r: 15 },
-  "Singapore": { cx: 480, cy: 160, r: 8 },
-  "Thailand": { cx: 460, cy: 140, r: 12 },
-  "Indonesia": { cx: 490, cy: 175, r: 20 },
-  "Malaysia": { cx: 475, cy: 155, r: 12 },
-  "Vietnam": { cx: 475, cy: 130, r: 10 },
-  "Philippines": { cx: 510, cy: 145, r: 12 },
-  "South Korea": { cx: 515, cy: 80, r: 8 },
-  "New Zealand": { cx: 570, cy: 240, r: 12 },
-  "United Arab Emirates": { cx: 375, cy: 120, r: 8 },
-  "Netherlands": { cx: 300, cy: 65, r: 6 },
-  "Italy": { cx: 310, cy: 85, r: 10 },
-  "Pakistan": { cx: 395, cy: 110, r: 12 },
-  "Sri Lanka": { cx: 420, cy: 150, r: 6 },
+  // North America
+  "United States": { cx: 130, cy: 95, r: 28 },
+  "Canada": { cx: 140, cy: 60, r: 30 },
+  
+  // Europe
+  "United Kingdom": { cx: 275, cy: 62, r: 14 },
+  "Germany": { cx: 305, cy: 68, r: 12 },
+  "France": { cx: 285, cy: 78, r: 14 },
+  "Netherlands": { cx: 295, cy: 62, r: 8 },
+  "Italy": { cx: 308, cy: 85, r: 12 },
+  
+  // Asia
+  "India": { cx: 415, cy: 120, r: 22 },
+  "China": { cx: 475, cy: 85, r: 28 },
+  "Japan": { cx: 530, cy: 80, r: 14 },
+  "South Korea": { cx: 512, cy: 82, r: 10 },
+  "Thailand": { cx: 462, cy: 138, r: 14 },
+  "Vietnam": { cx: 475, cy: 130, r: 12 },
+  "Malaysia": { cx: 470, cy: 158, r: 14 },
+  "Singapore": { cx: 472, cy: 165, r: 10 },
+  "Indonesia": { cx: 495, cy: 172, r: 22 },
+  "Philippines": { cx: 515, cy: 145, r: 14 },
+  "Pakistan": { cx: 395, cy: 108, r: 14 },
+  "Sri Lanka": { cx: 420, cy: 152, r: 8 },
+  
+  // Middle East
+  "United Arab Emirates": { cx: 375, cy: 118, r: 10 },
+  
+  // Oceania
+  "Australia": { cx: 520, cy: 205, r: 28 },
+  "New Zealand": { cx: 570, cy: 235, r: 14 },
+  
+  // South America
+  "Brazil": { cx: 155, cy: 195, r: 28 },
+  
+  // Africa
+  "South Africa": { cx: 320, cy: 215, r: 16 },
 };
 
 export function WorldMap({ className = "", selectedCountry, destinationCountry }: WorldMapProps) {
@@ -83,7 +96,9 @@ export function WorldMap({ className = "", selectedCountry, destinationCountry }
     <div ref={containerRef} className={`absolute inset-0 overflow-hidden ${className}`}>
       <motion.div
         style={{ y, scale }}
-        className="map-breathe absolute inset-0 flex items-center justify-center opacity-40"
+        className="map-breathe absolute inset-0 flex items-center justify-center"
+        animate={{ opacity: selectedRegion || destinationRegion ? 0.7 : 0.4 }}
+        transition={{ duration: 0.5 }}
       >
         <svg
           viewBox="0 0 600 300"
@@ -141,74 +156,146 @@ export function WorldMap({ className = "", selectedCountry, destinationCountry }
             ))}
           </g>
 
-          {/* Selected country highlight */}
+          {/* Selected country highlight (passport) */}
           {selectedRegion && (
-            <motion.circle
-              cx={selectedRegion.cx}
-              cy={selectedRegion.cy}
-              r={selectedRegion.r}
-              fill="#C45B3F"
-              fillOpacity="0.15"
-              stroke="#C45B3F"
-              strokeWidth="2"
-              filter="url(#glow)"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            />
+            <g>
+              {/* Outer pulse ring */}
+              <motion.circle
+                cx={selectedRegion.cx}
+                cy={selectedRegion.cy}
+                r={selectedRegion.r}
+                fill="none"
+                stroke="#C45B3F"
+                strokeWidth="1"
+                initial={{ scale: 1, opacity: 0.8 }}
+                animate={{ scale: 1.4, opacity: 0 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+              />
+              {/* Main highlight */}
+              <motion.circle
+                cx={selectedRegion.cx}
+                cy={selectedRegion.cy}
+                r={selectedRegion.r}
+                fill="#C45B3F"
+                fillOpacity="0.25"
+                stroke="#C45B3F"
+                strokeWidth="2.5"
+                filter="url(#glow)"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              />
+            </g>
           )}
 
           {/* Destination country highlight */}
           {destinationRegion && (
-            <motion.circle
-              cx={destinationRegion.cx}
-              cy={destinationRegion.cy}
-              r={destinationRegion.r}
-              fill="#1e3a5f"
-              fillOpacity="0.15"
-              stroke="#1e3a5f"
-              strokeWidth="2"
-              filter="url(#glow)"
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-            />
+            <g>
+              {/* Outer pulse ring */}
+              <motion.circle
+                cx={destinationRegion.cx}
+                cy={destinationRegion.cy}
+                r={destinationRegion.r}
+                fill="none"
+                stroke="#1e3a5f"
+                strokeWidth="1"
+                initial={{ scale: 1, opacity: 0.8 }}
+                animate={{ scale: 1.4, opacity: 0 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
+              />
+              {/* Main highlight */}
+              <motion.circle
+                cx={destinationRegion.cx}
+                cy={destinationRegion.cy}
+                r={destinationRegion.r}
+                fill="#1e3a5f"
+                fillOpacity="0.25"
+                stroke="#1e3a5f"
+                strokeWidth="2.5"
+                filter="url(#glow)"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
+              />
+            </g>
           )}
 
           {/* Connection path between countries */}
           {selectedRegion && destinationRegion && (
-            <motion.path
-              d={`M ${selectedRegion.cx} ${selectedRegion.cy} Q ${(selectedRegion.cx + destinationRegion.cx) / 2} ${Math.min(selectedRegion.cy, destinationRegion.cy) - 40} ${destinationRegion.cx} ${destinationRegion.cy}`}
-              fill="none"
-              stroke="url(#pathGradient)"
-              strokeWidth="2"
-              strokeDasharray="6 4"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
-            />
+            <g>
+              {/* Background path glow */}
+              <motion.path
+                d={`M ${selectedRegion.cx} ${selectedRegion.cy} Q ${(selectedRegion.cx + destinationRegion.cx) / 2} ${Math.min(selectedRegion.cy, destinationRegion.cy) - 50} ${destinationRegion.cx} ${destinationRegion.cy}`}
+                fill="none"
+                stroke="url(#pathGradient)"
+                strokeWidth="6"
+                strokeLinecap="round"
+                opacity="0.2"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
+              />
+              {/* Main path */}
+              <motion.path
+                d={`M ${selectedRegion.cx} ${selectedRegion.cy} Q ${(selectedRegion.cx + destinationRegion.cx) / 2} ${Math.min(selectedRegion.cy, destinationRegion.cy) - 50} ${destinationRegion.cx} ${destinationRegion.cy}`}
+                fill="none"
+                stroke="url(#pathGradient)"
+                strokeWidth="2.5"
+                strokeDasharray="8 4"
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
+              />
+              {/* Animated travel dot */}
+              <motion.circle
+                r="4"
+                fill="#C45B3F"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.7 }}
+              >
+                <animateMotion
+                  dur="3s"
+                  repeatCount="indefinite"
+                  path={`M ${selectedRegion.cx} ${selectedRegion.cy} Q ${(selectedRegion.cx + destinationRegion.cx) / 2} ${Math.min(selectedRegion.cy, destinationRegion.cy) - 50} ${destinationRegion.cx} ${destinationRegion.cy}`}
+                />
+              </motion.circle>
+            </g>
           )}
 
           {/* Map pins */}
           {selectedRegion && (
             <motion.g
-              initial={{ y: -20, opacity: 0 }}
+              initial={{ y: -30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.3 }}
             >
-              <circle cx={selectedRegion.cx} cy={selectedRegion.cy} r="6" fill="#C45B3F" />
-              <circle cx={selectedRegion.cx} cy={selectedRegion.cy} r="3" fill="#fff" />
+              {/* Pin shadow */}
+              <ellipse cx={selectedRegion.cx} cy={selectedRegion.cy + 2} rx="6" ry="3" fill="rgba(0,0,0,0.2)" />
+              {/* Pin body */}
+              <circle cx={selectedRegion.cx} cy={selectedRegion.cy} r="8" fill="#C45B3F" filter="url(#glow)" />
+              <circle cx={selectedRegion.cx} cy={selectedRegion.cy} r="4" fill="#fff" />
+              {/* Label */}
+              <rect x={selectedRegion.cx - 35} y={selectedRegion.cy - 28} width="70" height="18" rx="9" fill="#C45B3F" />
+              <text x={selectedRegion.cx} y={selectedRegion.cy - 16} textAnchor="middle" fill="#fff" fontSize="8" fontWeight="600">PASSPORT</text>
             </motion.g>
           )}
 
           {destinationRegion && (
             <motion.g
-              initial={{ y: -20, opacity: 0 }}
+              initial={{ y: -30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.4 }}
             >
-              <circle cx={destinationRegion.cx} cy={destinationRegion.cy} r="6" fill="#1e3a5f" />
-              <circle cx={destinationRegion.cx} cy={destinationRegion.cy} r="3" fill="#fff" />
+              {/* Pin shadow */}
+              <ellipse cx={destinationRegion.cx} cy={destinationRegion.cy + 2} rx="6" ry="3" fill="rgba(0,0,0,0.2)" />
+              {/* Pin body */}
+              <circle cx={destinationRegion.cx} cy={destinationRegion.cy} r="8" fill="#1e3a5f" filter="url(#glow)" />
+              <circle cx={destinationRegion.cx} cy={destinationRegion.cy} r="4" fill="#fff" />
+              {/* Label */}
+              <rect x={destinationRegion.cx - 40} y={destinationRegion.cy - 28} width="80" height="18" rx="9" fill="#1e3a5f" />
+              <text x={destinationRegion.cx} y={destinationRegion.cy - 16} textAnchor="middle" fill="#fff" fontSize="8" fontWeight="600">DESTINATION</text>
             </motion.g>
           )}
         </svg>
