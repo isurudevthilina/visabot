@@ -69,26 +69,35 @@ const statusStyles = {
   GREEN: {
     label: "Low friction",
     caption: "Likely visa-free or simple entry",
-    text: "text-emerald-800",
-    bg: "bg-emerald-50",
-    border: "border-emerald-200",
+    icon: "✓",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/30",
+    text: "text-emerald-400",
     dot: "bg-emerald-500",
+    pulseClass: "pulse-dot-green",
+    glow: "shadow-emerald-500/20",
   },
   YELLOW: {
     label: "Verify first",
     caption: "Visa or official check likely",
-    text: "text-amber-800",
-    bg: "bg-amber-50",
-    border: "border-amber-200",
+    icon: "!",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/30",
+    text: "text-amber-400",
     dot: "bg-amber-500",
+    pulseClass: "pulse-dot-yellow",
+    glow: "shadow-amber-500/20",
   },
   RED: {
     label: "High friction",
     caption: "Special permit or visa likely",
-    text: "text-rose-800",
-    bg: "bg-rose-50",
-    border: "border-rose-200",
+    icon: "✗",
+    bg: "bg-rose-500/10",
+    border: "border-rose-500/30",
+    text: "text-rose-400",
     dot: "bg-rose-500",
+    pulseClass: "pulse-dot-red",
+    glow: "shadow-rose-500/20",
   },
 } as const;
 
@@ -204,6 +213,8 @@ export default function Home() {
     form.purpose.trim().length > 1 &&
     !isLoading;
 
+  const hasResults = object?.tldr || steps.length > 0 || checklist.length > 0;
+
   function updateField(field: keyof VisaRequest, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
   }
@@ -228,40 +239,56 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f8f7f3] text-slate-950">
-      <section className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-5 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-slate-950 text-white">
-              <Globe2 size={20} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase text-slate-500">
-                Zero-to-Agent Hackathon
-              </p>
-              <h1 className="text-xl font-semibold text-slate-950">VisaBot</h1>
+    <main className="min-h-screen gradient-mesh text-slate-100">
+      {/* Floating glassmorphism header */}
+      <header className="sticky top-0 z-50 px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="glass rounded-2xl px-4 py-3 shadow-xl shadow-black/10 sm:px-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <motion.div 
+                  initial={{ rotate: -10 }}
+                  animate={{ rotate: 0 }}
+                  className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                >
+                  <Globe2 size={20} aria-hidden="true" />
+                </motion.div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+                    Zero-to-Agent Hackathon
+                  </p>
+                  <h1 className="text-xl font-bold text-white">VisaBot</h1>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <HeaderPill icon={<Sparkles size={14} />} label="v0 UI" />
+                <HeaderPill icon={<DatabaseZap size={14} />} label="MCP rules" />
+                <HeaderPill icon={<Search size={14} />} label="Tavily sources" />
+              </div>
             </div>
           </div>
+        </div>
+      </header>
 
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <Pill icon={<Sparkles size={15} />} label="v0 UI" />
-            <Pill icon={<DatabaseZap size={15} />} label="MCP rules" />
-            <Pill icon={<Search size={15} />} label="Tavily sources" />
-          </div>
-        </header>
-
-        <div className="grid flex-1 gap-6 py-6 lg:grid-cols-[430px_minmax(0,1fr)] lg:items-start lg:py-8">
-          <aside className="space-y-4 lg:sticky lg:top-6">
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-              <div className="mb-5">
-                <div className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-semibold uppercase text-slate-600">
+      <section className="mx-auto flex min-h-[calc(100vh-80px)] w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid flex-1 gap-6 lg:grid-cols-[430px_minmax(0,1fr)] lg:items-start">
+          {/* Left sidebar - Form */}
+          <aside className="space-y-4 lg:sticky lg:top-24">
+            <motion.section 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="glass-card rounded-2xl p-5 shadow-xl shadow-black/10 glow-border-focus transition-shadow duration-300 sm:p-6"
+            >
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-400 ring-1 ring-blue-500/20">
                   <ShieldCheck size={14} aria-hidden="true" />
                   Strict immigration triage
                 </div>
-                <h2 className="mt-4 text-2xl font-semibold leading-tight text-slate-950">
+                <h2 className="mt-4 text-2xl font-bold leading-tight text-white">
                   Check the visa path before you book.
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+                <p className="mt-2 text-sm leading-6 text-slate-400">
                   VisaBot combines a local MCP rule base with official-source
                   search, then streams a structured travel brief.
                 </p>
@@ -285,30 +312,32 @@ export default function Home() {
                 />
 
                 <div>
-                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-300">
                     <BriefcaseBusiness size={16} aria-hidden="true" />
                     Travel purpose
                   </div>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-2">
                     {purposeOptions.map((purpose) => (
-                      <button
+                      <motion.button
                         key={purpose}
                         type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => updateField("purpose", purpose)}
-                        className={`h-10 rounded-md border px-3 text-sm font-medium transition ${
+                        className={`h-10 rounded-lg px-3 text-sm font-medium transition-all duration-200 ${
                           form.purpose === purpose
-                            ? "border-slate-950 bg-slate-950 text-white"
-                            : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-400 hover:bg-white"
+                            ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25"
+                            : "bg-slate-800/50 text-slate-400 ring-1 ring-slate-700 hover:bg-slate-700/50 hover:text-slate-200"
                         }`}
                       >
                         {purpose}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
 
                 <label className="block">
-                  <span className="mb-2 block text-sm font-semibold text-slate-700">
+                  <span className="mb-2 block text-sm font-semibold text-slate-300">
                     Trip details
                   </span>
                   <textarea
@@ -316,15 +345,17 @@ export default function Home() {
                     onChange={(event) => updateField("details", event.target.value)}
                     placeholder="Duration, invitation, study program, employer, transit route..."
                     rows={4}
-                    className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-sm leading-6 outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:bg-white"
+                    className="w-full resize-none rounded-xl bg-slate-800/50 px-4 py-3 text-sm leading-6 text-slate-200 outline-none ring-1 ring-slate-700 transition-all placeholder:text-slate-500 focus:bg-slate-800 focus:ring-blue-500/50"
                   />
                 </label>
 
                 <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                  <button
+                  <motion.button
                     type="submit"
                     disabled={!canSubmit}
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    whileHover={canSubmit ? { scale: 1.02 } : {}}
+                    whileTap={canSubmit ? { scale: 0.98 } : {}}
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:shadow-xl hover:shadow-blue-500/30 disabled:cursor-not-allowed disabled:from-slate-600 disabled:to-slate-600 disabled:shadow-none"
                   >
                     {isLoading ? (
                       <Loader2 className="animate-spin" size={18} aria-hidden="true" />
@@ -332,48 +363,81 @@ export default function Home() {
                       <Plane size={18} aria-hidden="true" />
                     )}
                     {isLoading ? "Scanning sources" : "Run visa agent"}
-                  </button>
+                  </motion.button>
 
                   {isLoading ? (
-                    <button
+                    <motion.button
                       type="button"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       onClick={stop}
-                      className="h-12 rounded-lg border border-slate-200 px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className="h-12 rounded-xl bg-slate-800/50 px-4 text-sm font-semibold text-slate-300 ring-1 ring-slate-700 transition hover:bg-slate-700/50"
                     >
                       Stop
-                    </button>
+                    </motion.button>
                   ) : null}
                 </div>
               </form>
-            </section>
+            </motion.section>
 
-            <section className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              {examples.map((example) => (
-                <button
+            {/* Example cards */}
+            <motion.section 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1"
+            >
+              {examples.map((example, index) => (
+                <motion.button
                   key={`${example.passport}-${example.destination}`}
                   type="button"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.15 + index * 0.05 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => fillExample(example)}
-                  className="rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:border-slate-400"
+                  className="card-lift glass-card rounded-xl p-3 text-left"
                 >
-                  <span className="block text-sm font-semibold text-slate-950">
+                  <span className="block text-sm font-semibold text-white">
                     {example.passport} to {example.destination}
                   </span>
-                  <span className="mt-1 block text-xs leading-5 text-slate-500">
+                  <span className="mt-1 block text-xs leading-5 text-slate-400">
                     {example.purpose}
                   </span>
-                </button>
+                </motion.button>
               ))}
-            </section>
+            </motion.section>
           </aside>
 
+          {/* Right column - Results */}
           <section className="space-y-4">
-            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-              <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
+            {/* Progress bar when loading */}
+            <AnimatePresence>
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, scaleX: 0 }}
+                  animate={{ opacity: 1, scaleX: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="relative h-1 overflow-hidden rounded-full bg-slate-800"
+                >
+                  <div className="progress-stream absolute inset-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="glass-card rounded-2xl p-5 shadow-xl shadow-black/10 sm:p-6"
+            >
+              <div className="flex flex-col gap-4 border-b border-slate-700/50 pb-5 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase text-slate-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
                     Agent output
                   </p>
-                  <h3 className="mt-1 text-2xl font-semibold text-slate-950">
+                  <h3 className="mt-1 text-2xl font-bold text-white">
                     Immigration brief
                   </h3>
                 </div>
@@ -382,16 +446,23 @@ export default function Home() {
                   {statusStyle ? (
                     <motion.div
                       key={status}
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 6 }}
-                      className={`rounded-lg border px-3 py-2 ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                      initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                      className={`rounded-xl px-4 py-2.5 shadow-lg ${statusStyle.bg} ${statusStyle.border} border ${statusStyle.glow}`}
                     >
-                      <div className="flex items-center gap-2 text-sm font-semibold">
-                        <span className={`size-2 rounded-full ${statusStyle.dot}`} />
-                        {statusStyle.label}
+                      <div className="flex items-center gap-3">
+                        <div className={`relative flex size-3 items-center justify-center`}>
+                          <span className={`pulse-dot ${statusStyle.pulseClass} relative size-3 rounded-full ${statusStyle.dot}`} />
+                        </div>
+                        <div>
+                          <div className={`text-sm font-bold ${statusStyle.text}`}>
+                            {statusStyle.label}
+                          </div>
+                          <p className="text-xs text-slate-400">{statusStyle.caption}</p>
+                        </div>
                       </div>
-                      <p className="mt-0.5 text-xs">{statusStyle.caption}</p>
                     </motion.div>
                   ) : (
                     <motion.div
@@ -399,7 +470,7 @@ export default function Home() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-500"
+                      className="rounded-xl bg-slate-800/50 px-4 py-2.5 text-sm font-semibold text-slate-500 ring-1 ring-slate-700"
                     >
                       Awaiting scan
                     </motion.div>
@@ -408,157 +479,210 @@ export default function Home() {
               </div>
 
               {error ? (
-                <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-700">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-5 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm leading-6 text-rose-300"
+                >
                   {error.message}
-                </div>
+                </motion.div>
               ) : null}
 
-              <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
-                <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <SectionHeading
-                    icon={<BadgeCheck size={16} />}
-                    title="Overview"
-                    caption="Two-sentence agent summary"
+              {/* Empty state */}
+              {!hasResults && !isLoading && !error && (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <motion.div 
+                    className="float-animation mb-6 text-slate-600"
+                  >
+                    <Globe2 size={80} strokeWidth={1} />
+                  </motion.div>
+                  <h4 className="text-lg font-semibold text-slate-300">Enter a route to begin</h4>
+                  <p className="mt-2 max-w-sm text-sm text-slate-500">
+                    Select your passport country, destination, and travel purpose to receive an AI-powered immigration brief.
+                  </p>
+                </div>
+              )}
+
+              {/* Results content */}
+              {(hasResults || isLoading) && (
+                <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+                  <section className="rounded-xl bg-slate-800/30 p-4 ring-1 ring-slate-700/50">
+                    <SectionHeading
+                      icon={<BadgeCheck size={16} />}
+                      title="Overview"
+                      caption="Two-sentence agent summary"
+                    />
+                    <div className="mt-4 min-h-28 rounded-lg bg-slate-800/50 p-4">
+                      {object?.tldr ? (
+                        <motion.p 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-base leading-7 text-slate-200"
+                        >
+                          {object.tldr}
+                        </motion.p>
+                      ) : (
+                        <LoadingCopy
+                          active={isLoading}
+                          text="Submit a route to stream a visa summary."
+                        />
+                      )}
+                    </div>
+                  </section>
+
+                  <section className="rounded-xl bg-slate-800/30 p-4 ring-1 ring-slate-700/50">
+                    <SectionHeading
+                      icon={<DatabaseZap size={16} />}
+                      title="Source stack"
+                      caption="How the answer is grounded"
+                    />
+                    <div className="mt-4 space-y-2 text-sm">
+                      <SourceStackItem active={Boolean(object)} label="MCP rule lookup" />
+                      <SourceStackItem
+                        active={documents.length > 0 || sources.length > 0}
+                        label="Official source links"
+                      />
+                      <SourceStackItem active={Boolean(object?.generatedAt)} label="Structured JSON stream" />
+                    </div>
+                  </section>
+                </div>
+              )}
+            </motion.div>
+
+            {(hasResults || isLoading) && (
+              <>
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <TimelineList
+                    title="Application steps"
+                    icon={<ArrowRight size={16} />}
+                    items={steps}
+                    isLoading={isLoading}
+                    empty="The agent will place the application path here."
                   />
-                  <div className="mt-4 min-h-28 rounded-lg bg-white p-4">
-                    {object?.tldr ? (
-                      <p className="text-base leading-7 text-slate-800">
-                        {object.tldr}
-                      </p>
+                  <Checklist
+                    title="Required checklist"
+                    icon={<FileCheck2 size={16} />}
+                    items={checklist}
+                    isLoading={isLoading}
+                    empty="Documents will appear as the object streams."
+                  />
+                </div>
+
+                <motion.section 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="glass-card rounded-2xl p-5 shadow-xl shadow-black/10 sm:p-6"
+                >
+                  <SectionHeading
+                    icon={<FileText size={16} />}
+                    title="Official documents"
+                    caption="Government pages, forms, and downloads"
+                  />
+
+                  <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                    {documents.length > 0 ? (
+                      documents.map((document, index) => (
+                        <DocumentCard
+                          key={`${document.sourceUrl}-${index}`}
+                          document={document}
+                          index={index}
+                        />
+                      ))
                     ) : (
-                      <LoadingCopy
+                      <EmptyPanel
                         active={isLoading}
-                        text="Submit a route to stream a visa summary."
+                        text="Official document links will appear here when the MCP lookup returns them."
                       />
                     )}
                   </div>
-                </section>
+                </motion.section>
 
-                <section className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <SectionHeading
-                    icon={<DatabaseZap size={16} />}
-                    title="Source stack"
-                    caption="How the answer is grounded"
-                  />
-                  <div className="mt-4 space-y-2 text-sm text-slate-700">
-                    <SourceStackItem active={Boolean(object)} label="MCP rule lookup" />
-                    <SourceStackItem
-                      active={documents.length > 0 || sources.length > 0}
-                      label="Official source links"
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <motion.section 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    className="glass-card rounded-2xl p-5 shadow-xl shadow-black/10 sm:p-6"
+                  >
+                    <SectionHeading
+                      icon={<ExternalLink size={16} />}
+                      title="Official sources"
+                      caption="Open the source of truth"
                     />
-                    <SourceStackItem active={Boolean(object?.generatedAt)} label="Structured JSON stream" />
-                  </div>
-                </section>
-              </div>
-            </div>
-
-            <div className="grid gap-4 xl:grid-cols-2">
-              <TimelineList
-                title="Application steps"
-                icon={<ArrowRight size={16} />}
-                items={steps}
-                isLoading={isLoading}
-                empty="The agent will place the application path here."
-              />
-              <Checklist
-                title="Required checklist"
-                icon={<FileCheck2 size={16} />}
-                items={checklist}
-                isLoading={isLoading}
-                empty="Documents will appear as the object streams."
-              />
-            </div>
-
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-              <SectionHeading
-                icon={<FileText size={16} />}
-                title="Official documents"
-                caption="Government pages, forms, and downloads"
-              />
-
-              <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                {documents.length > 0 ? (
-                  documents.map((document, index) => (
-                    <DocumentCard
-                      key={`${document.sourceUrl}-${index}`}
-                      document={document}
-                    />
-                  ))
-                ) : (
-                  <EmptyPanel
-                    active={isLoading}
-                    text="Official document links will appear here when the MCP lookup returns them."
-                  />
-                )}
-              </div>
-            </section>
-
-            <div className="grid gap-4 xl:grid-cols-2">
-              <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                <SectionHeading
-                  icon={<ExternalLink size={16} />}
-                  title="Official sources"
-                  caption="Open the source of truth"
-                />
-                <div className="mt-4 space-y-2">
-                  {sources.length > 0 ? (
-                    sources.map((source, index) => (
-                      <a
-                        key={`${source.url}-${index}`}
-                        href={source.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm transition hover:border-slate-400 hover:bg-white"
-                      >
-                        <span>
-                          <span className="block font-semibold text-slate-900">
-                            {source.title}
-                          </span>
-                          <span className="mt-1 block text-xs text-slate-500">
-                            {source.publisher}
-                          </span>
-                        </span>
-                        <ExternalLink
-                          className="shrink-0 text-slate-400"
-                          size={16}
-                          aria-hidden="true"
+                    <div className="mt-4 space-y-2">
+                      {sources.length > 0 ? (
+                        sources.map((source, index) => (
+                          <motion.a
+                            key={`${source.url}-${index}`}
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            whileHover={{ x: 4 }}
+                            className="card-lift flex items-center justify-between gap-3 rounded-xl bg-slate-800/50 p-3 text-sm ring-1 ring-slate-700 transition-colors hover:bg-slate-700/50"
+                          >
+                            <span>
+                              <span className="block font-semibold text-slate-200">
+                                {source.title}
+                              </span>
+                              <span className="mt-1 block text-xs text-slate-500">
+                                {source.publisher}
+                              </span>
+                            </span>
+                            <ExternalLink
+                              className="shrink-0 text-slate-500"
+                              size={16}
+                              aria-hidden="true"
+                            />
+                          </motion.a>
+                        ))
+                      ) : (
+                        <LoadingCopy
+                          active={isLoading}
+                          text="No official sources loaded yet."
                         />
-                      </a>
-                    ))
-                  ) : (
-                    <LoadingCopy
-                      active={isLoading}
-                      text="No official sources loaded yet."
-                    />
-                  )}
-                </div>
-              </section>
+                      )}
+                    </div>
+                  </motion.section>
 
-              <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-                <SectionHeading
-                  icon={<AlertTriangle size={16} />}
-                  title="Warnings"
-                  caption="What still needs human verification"
-                />
-                <div className="mt-4 space-y-2">
-                  {warnings.length > 0 ? (
-                    warnings.map((warning, index) => (
-                      <div
-                        key={`${warning}-${index}`}
-                        className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900"
-                      >
-                        {warning}
-                      </div>
-                    ))
-                  ) : (
-                    <LoadingCopy
-                      active={isLoading}
-                      text="Warnings and uncertainty notes will appear here."
+                  <motion.section 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="glass-card rounded-2xl p-5 shadow-xl shadow-black/10 sm:p-6"
+                  >
+                    <SectionHeading
+                      icon={<AlertTriangle size={16} />}
+                      title="Warnings"
+                      caption="What still needs human verification"
                     />
-                  )}
+                    <div className="mt-4 space-y-2">
+                      {warnings.length > 0 ? (
+                        warnings.map((warning, index) => (
+                          <motion.div
+                            key={`${warning}-${index}`}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm leading-6 text-amber-200"
+                          >
+                            {warning}
+                          </motion.div>
+                        ))
+                      ) : (
+                        <LoadingCopy
+                          active={isLoading}
+                          text="Warnings and uncertainty notes will appear here."
+                        />
+                      )}
+                    </div>
+                  </motion.section>
                 </div>
-              </section>
-            </div>
+              </>
+            )}
           </section>
         </div>
       </section>
@@ -594,7 +718,7 @@ function CountryCombobox({
 
   return (
     <label className="relative block">
-      <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+      <span className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-300">
         {icon}
         {label}
       </span>
@@ -608,54 +732,61 @@ function CountryCombobox({
             setOpen(true);
           }}
           placeholder={placeholder}
-          className="h-12 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-10 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-950 focus:bg-white"
+          className="h-12 w-full rounded-xl bg-slate-800/50 pl-10 pr-10 text-sm text-slate-200 outline-none ring-1 ring-slate-700 transition-all placeholder:text-slate-500 focus:bg-slate-800 focus:ring-blue-500/50"
         />
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
           size={16}
           aria-hidden="true"
         />
         <ChevronDown
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
           size={16}
           aria-hidden="true"
         />
       </div>
 
-      {open ? (
-        <div className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
-          {filteredCountries.length > 0 ? (
-            filteredCountries.map((country) => (
-              <button
-                key={country}
-                type="button"
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => {
-                  onChange(country);
-                  setOpen(false);
-                }}
-                className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-              >
-                {country}
-                {value === country ? (
-                  <Check size={15} className="text-slate-950" aria-hidden="true" />
-                ) : null}
-              </button>
-            ))
-          ) : (
-            <div className="px-3 py-2 text-sm text-slate-500">
-              Keep typing to use a custom country.
-            </div>
-          )}
-        </div>
-      ) : null}
+      <AnimatePresence>
+        {open && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-xl bg-slate-800 p-1 shadow-xl ring-1 ring-slate-700"
+          >
+            {filteredCountries.length > 0 ? (
+              filteredCountries.map((country) => (
+                <button
+                  key={country}
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    onChange(country);
+                    setOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-slate-300 transition hover:bg-slate-700"
+                >
+                  {country}
+                  {value === country ? (
+                    <Check size={15} className="text-blue-400" aria-hidden="true" />
+                  ) : null}
+                </button>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-sm text-slate-500">
+                Keep typing to use a custom country.
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </label>
   );
 }
 
-function Pill({ icon, label }: { icon: ReactNode; label: string }) {
+function HeaderPill({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 font-medium text-slate-600 shadow-sm">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/50 px-3 py-1.5 text-xs font-medium text-slate-400 ring-1 ring-slate-700">
       {icon}
       {label}
     </span>
@@ -673,9 +804,9 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-start gap-2">
-      <div className="mt-0.5 text-slate-500">{icon}</div>
+      <div className="mt-0.5 text-blue-400">{icon}</div>
       <div>
-        <h4 className="text-sm font-semibold text-slate-950">{title}</h4>
+        <h4 className="text-sm font-semibold text-white">{title}</h4>
         <p className="mt-0.5 text-xs text-slate-500">{caption}</p>
       </div>
     </div>
@@ -689,16 +820,16 @@ function LoadingCopy({ active, text }: { active: boolean; text: string }) {
 
   return (
     <div className="space-y-3">
-      <div className="h-3 w-11/12 animate-pulse rounded-lg bg-slate-200" />
-      <div className="h-3 w-9/12 animate-pulse rounded-lg bg-slate-200" />
-      <div className="h-3 w-7/12 animate-pulse rounded-lg bg-slate-200" />
+      <div className="h-3 w-11/12 animate-pulse rounded-lg bg-slate-700" />
+      <div className="h-3 w-9/12 animate-pulse rounded-lg bg-slate-700" />
+      <div className="h-3 w-7/12 animate-pulse rounded-lg bg-slate-700" />
     </div>
   );
 }
 
 function EmptyPanel({ active, text }: { active: boolean; text: string }) {
   return (
-    <div className="min-h-36 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-4 lg:col-span-2">
+    <div className="min-h-28 rounded-xl border border-dashed border-slate-700 bg-slate-800/30 p-4 lg:col-span-2">
       <LoadingCopy active={active} text={text} />
     </div>
   );
@@ -706,12 +837,20 @@ function EmptyPanel({ active, text }: { active: boolean; text: string }) {
 
 function SourceStackItem({ active, label }: { active: boolean; label: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-md bg-white px-3 py-2">
+    <motion.div 
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex items-center gap-2 rounded-lg bg-slate-800/50 px-3 py-2 text-slate-400"
+    >
       <span
-        className={`size-2 rounded-full ${active ? "bg-emerald-500" : "bg-slate-300"}`}
-      />
+        className={`relative size-2 rounded-full ${active ? "bg-emerald-500" : "bg-slate-600"}`}
+      >
+        {active && (
+          <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500 opacity-50" />
+        )}
+      </span>
       {label}
-    </div>
+    </motion.div>
   );
 }
 
@@ -729,30 +868,42 @@ function TimelineList({
   empty: string;
 }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <motion.section 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.25 }}
+      className="glass-card rounded-2xl p-5 shadow-xl shadow-black/10 sm:p-6"
+    >
       <SectionHeading icon={icon} title={title} caption="Ordered path to apply" />
-      <div className="mt-4 min-h-56">
+      <div className="mt-4 min-h-44">
         {items.length > 0 ? (
-          <ol className="space-y-3">
+          <ol className="relative space-y-0">
             {items.map((item, index) => (
-              <li key={`${item}-${index}`} className="grid grid-cols-[32px_1fr] gap-3">
-                <div className="flex flex-col items-center">
-                  <span className="flex size-8 items-center justify-center rounded-md bg-slate-950 text-xs font-semibold text-white">
+              <motion.li 
+                key={`${item}-${index}`} 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="relative grid grid-cols-[32px_1fr] gap-3 pb-4"
+              >
+                {/* Timeline line */}
+                {index < items.length - 1 && (
+                  <div className="timeline-line absolute left-[15px] top-8 h-[calc(100%-16px)] w-0.5" />
+                )}
+                <div className="relative z-10 flex flex-col items-center">
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-xs font-bold text-white shadow-lg shadow-blue-500/25">
                     {index + 1}
                   </span>
-                  {index < items.length - 1 ? (
-                    <span className="mt-2 h-full w-px bg-slate-200" />
-                  ) : null}
                 </div>
-                <p className="pb-3 text-sm leading-6 text-slate-700">{item}</p>
-              </li>
+                <p className="pt-1 text-sm leading-6 text-slate-300">{item}</p>
+              </motion.li>
             ))}
           </ol>
         ) : (
           <LoadingCopy active={isLoading} text={empty} />
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }
 
@@ -770,77 +921,96 @@ function Checklist({
   empty: string;
 }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <motion.section 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.25 }}
+      className="glass-card rounded-2xl p-5 shadow-xl shadow-black/10 sm:p-6"
+    >
       <SectionHeading icon={icon} title={title} caption="Evidence to prepare" />
-      <div className="mt-4 min-h-56">
+      <div className="mt-4 min-h-44">
         {items.length > 0 ? (
           <div className="space-y-2">
             {items.map((item, index) => (
-              <div
+              <motion.div
                 key={`${item}-${index}`}
-                className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-6"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="flex gap-3 rounded-xl bg-slate-800/50 p-3 text-sm leading-6 ring-1 ring-slate-700/50"
               >
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-emerald-100 text-emerald-700">
+                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-emerald-500/20 text-emerald-400">
                   <Check size={14} aria-hidden="true" />
                 </span>
-                <span className="text-slate-700">{item}</span>
-              </div>
+                <span className="text-slate-300">{item}</span>
+              </motion.div>
             ))}
           </div>
         ) : (
           <LoadingCopy active={isLoading} text={empty} />
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }
 
-function DocumentCard({ document }: { document: DocumentResult }) {
+function DocumentCard({ document, index }: { document: DocumentResult; index: number }) {
   const confidence = document.confidence ?? "medium";
+  const confidenceStyles = {
+    high: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/30",
+    medium: "bg-amber-500/10 text-amber-400 ring-amber-500/30",
+    low: "bg-slate-500/10 text-slate-400 ring-slate-500/30",
+  };
 
   return (
-    <article className="flex min-h-56 flex-col rounded-lg border border-slate-200 bg-slate-50 p-4">
+    <motion.article 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05 * index }}
+      whileHover={{ y: -4 }}
+      className="card-lift flex flex-col rounded-xl bg-slate-800/50 p-4 ring-1 ring-slate-700/50"
+    >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white text-slate-600">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-slate-700/50 text-slate-400">
           <FileText size={18} aria-hidden="true" />
         </div>
-        <span className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-semibold uppercase text-slate-600">
+        <span className={`rounded-md px-2 py-1 text-xs font-semibold uppercase ring-1 ${confidenceStyles[confidence]}`}>
           {confidence}
         </span>
       </div>
 
-      <h5 className="mt-4 text-base font-semibold leading-6 text-slate-950">
+      <h5 className="mt-3 text-base font-semibold leading-6 text-white">
         {document.title}
       </h5>
-      <p className="mt-2 flex-1 text-sm leading-6 text-slate-600">
+      <p className="mt-2 flex-1 text-sm leading-6 text-slate-400">
         {document.description || "Official immigration document or source page."}
       </p>
-      <p className="mt-3 text-xs font-medium text-slate-500">
+      <p className="mt-2 text-xs font-medium text-slate-500">
         {document.sourceName || "Official source"}
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2">
         <a
           href={document.sourceUrl}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-slate-950 px-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+          className="inline-flex h-8 items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 px-3 text-xs font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:shadow-xl hover:shadow-blue-500/30"
         >
           Open official page
-          <ExternalLink size={14} aria-hidden="true" />
+          <ExternalLink size={12} aria-hidden="true" />
         </a>
         {document.downloadUrl ? (
           <a
             href={document.downloadUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
+            className="inline-flex h-8 items-center gap-2 rounded-lg bg-slate-700/50 px-3 text-xs font-semibold text-slate-300 ring-1 ring-slate-600 transition hover:bg-slate-600/50"
           >
             Download form
-            <Download size={14} aria-hidden="true" />
+            <Download size={12} aria-hidden="true" />
           </a>
         ) : null}
       </div>
-    </article>
+    </motion.article>
   );
 }
