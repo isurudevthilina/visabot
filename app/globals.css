@@ -32,9 +32,9 @@
   --color-danger: var(--danger);
   --color-border: var(--border);
   --color-map-stroke: var(--map-stroke);
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-cormorant), Georgia, serif;
+  --font-mono: var(--font-jetbrains), "SFMono-Regular", Consolas, monospace;
 }
 
 html {
