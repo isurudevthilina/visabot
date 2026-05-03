@@ -1,7 +1,15 @@
 "use client";
 
+import { memo, useRef, useState, useCallback } from "react";
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  Line,
+  ZoomableGroup,
+} from "react-simple-maps";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
 
 interface WorldMapProps {
   className?: string;
@@ -9,332 +17,303 @@ interface WorldMapProps {
   destinationCountry?: string;
 }
 
-// Simplified world map SVG paths - low-poly style for performance
-const continentPaths = {
-  // North America
-  northAmerica: "M 80,60 L 120,55 L 160,65 L 180,80 L 190,100 L 180,120 L 160,140 L 140,150 L 120,145 L 100,130 L 80,120 L 70,100 L 75,80 Z",
-  // South America
-  southAmerica: "M 130,160 L 150,155 L 165,170 L 170,200 L 165,230 L 155,260 L 140,270 L 125,260 L 120,230 L 125,200 L 130,170 Z",
-  // Europe
-  europe: "M 280,60 L 320,55 L 350,65 L 360,80 L 355,95 L 340,100 L 320,105 L 300,100 L 285,90 L 275,75 Z",
-  // Africa
-  africa: "M 280,110 L 320,105 L 350,115 L 360,140 L 355,180 L 340,210 L 310,220 L 280,215 L 265,190 L 260,160 L 265,130 Z",
-  // Asia
-  asia: "M 360,50 L 420,45 L 480,50 L 520,65 L 540,90 L 530,120 L 500,140 L 460,145 L 420,140 L 380,130 L 360,110 L 355,80 Z",
-  // Australia
-  australia: "M 480,180 L 520,175 L 550,185 L 560,205 L 550,225 L 520,235 L 490,230 L 475,210 L 475,190 Z",
-  // Greenland
-  greenland: "M 180,30 L 210,25 L 230,35 L 235,50 L 225,60 L 200,65 L 180,55 L 175,40 Z",
-  // Japan & Islands
-  japan: "M 520,75 L 535,70 L 545,80 L 540,95 L 525,100 L 515,90 Z",
-  // UK & Ireland
-  uk: "M 265,60 L 280,55 L 290,65 L 285,80 L 270,85 L 260,75 Z",
-  // Indonesia
-  indonesia: "M 465,165 L 500,160 L 530,165 L 545,175 L 530,185 L 495,190 L 465,185 L 455,175 Z",
-  // Middle East
-  middleEast: "M 330,95 L 360,90 L 385,100 L 390,120 L 375,135 L 345,140 L 320,130 L 315,110 Z",
-  // Central America
-  centralAmerica: "M 100,130 L 130,125 L 145,135 L 140,150 L 120,160 L 100,155 L 95,140 Z",
+// World map topology URL
+const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+
+// Country name to ISO code mapping for react-simple-maps
+const countryToISO: Record<string, string> = {
+  "United States": "USA",
+  "Canada": "CAN",
+  "United Kingdom": "GBR",
+  "Germany": "DEU",
+  "France": "FRA",
+  "Netherlands": "NLD",
+  "Italy": "ITA",
+  "India": "IND",
+  "China": "CHN",
+  "Japan": "JPN",
+  "South Korea": "KOR",
+  "Thailand": "THA",
+  "Vietnam": "VNM",
+  "Malaysia": "MYS",
+  "Singapore": "SGP",
+  "Indonesia": "IDN",
+  "Philippines": "PHL",
+  "Pakistan": "PAK",
+  "Sri Lanka": "LKA",
+  "United Arab Emirates": "ARE",
+  "Australia": "AUS",
+  "New Zealand": "NZL",
+  "Brazil": "BRA",
+  "South Africa": "ZAF",
 };
 
-// Country highlight regions - all supported countries
-const countryRegions: Record<string, { cx: number; cy: number; r: number }> = {
-  // North America
-  "United States": { cx: 130, cy: 95, r: 28 },
-  "Canada": { cx: 140, cy: 60, r: 30 },
-  
-  // Europe
-  "United Kingdom": { cx: 275, cy: 62, r: 14 },
-  "Germany": { cx: 305, cy: 68, r: 12 },
-  "France": { cx: 285, cy: 78, r: 14 },
-  "Netherlands": { cx: 295, cy: 62, r: 8 },
-  "Italy": { cx: 308, cy: 85, r: 12 },
-  
-  // Asia
-  "India": { cx: 415, cy: 120, r: 22 },
-  "China": { cx: 475, cy: 85, r: 28 },
-  "Japan": { cx: 530, cy: 80, r: 14 },
-  "South Korea": { cx: 512, cy: 82, r: 10 },
-  "Thailand": { cx: 462, cy: 138, r: 14 },
-  "Vietnam": { cx: 475, cy: 130, r: 12 },
-  "Malaysia": { cx: 470, cy: 158, r: 14 },
-  "Singapore": { cx: 472, cy: 165, r: 10 },
-  "Indonesia": { cx: 495, cy: 172, r: 22 },
-  "Philippines": { cx: 515, cy: 145, r: 14 },
-  "Pakistan": { cx: 395, cy: 108, r: 14 },
-  "Sri Lanka": { cx: 420, cy: 152, r: 8 },
-  
-  // Middle East
-  "United Arab Emirates": { cx: 375, cy: 118, r: 10 },
-  
-  // Oceania
-  "Australia": { cx: 520, cy: 205, r: 28 },
-  "New Zealand": { cx: 570, cy: 235, r: 14 },
-  
-  // South America
-  "Brazil": { cx: 155, cy: 195, r: 28 },
-  
-  // Africa
-  "South Africa": { cx: 320, cy: 215, r: 16 },
+// Country coordinates for markers and flight paths
+const countryCoordinates: Record<string, [number, number]> = {
+  "United States": [-95.7129, 37.0902],
+  "Canada": [-106.3468, 56.1304],
+  "United Kingdom": [-3.4360, 55.3781],
+  "Germany": [10.4515, 51.1657],
+  "France": [2.2137, 46.2276],
+  "Netherlands": [5.2913, 52.1326],
+  "Italy": [12.5674, 41.8719],
+  "India": [78.9629, 20.5937],
+  "China": [104.1954, 35.8617],
+  "Japan": [138.2529, 36.2048],
+  "South Korea": [127.7669, 35.9078],
+  "Thailand": [100.9925, 15.8700],
+  "Vietnam": [108.2772, 14.0583],
+  "Malaysia": [101.9758, 4.2105],
+  "Singapore": [103.8198, 1.3521],
+  "Indonesia": [113.9213, -0.7893],
+  "Philippines": [121.7740, 12.8797],
+  "Pakistan": [69.3451, 30.3753],
+  "Sri Lanka": [80.7718, 7.8731],
+  "United Arab Emirates": [53.8478, 23.4241],
+  "Australia": [133.7751, -25.2744],
+  "New Zealand": [174.8860, -40.9006],
+  "Brazil": [-51.9253, -14.2350],
+  "South Africa": [22.9375, -30.5595],
 };
+
+// Calculate great arc path for flight route
+function calculateArcPath(
+  start: [number, number],
+  end: [number, number]
+): [number, number][] {
+  const points: [number, number][] = [];
+  const numPoints = 50;
+  
+  for (let i = 0; i <= numPoints; i++) {
+    const t = i / numPoints;
+    const lng = start[0] + (end[0] - start[0]) * t;
+    const lat = start[1] + (end[1] - start[1]) * t;
+    // Add arc effect - curve upward in the middle
+    const arcHeight = Math.sin(t * Math.PI) * 15;
+    points.push([lng, lat + arcHeight]);
+  }
+  
+  return points;
+}
+
+const MapComponent = memo(function MapComponent({
+  selectedCountry,
+  destinationCountry,
+  hoveredCountry,
+  setHoveredCountry,
+}: {
+  selectedCountry?: string;
+  destinationCountry?: string;
+  hoveredCountry: string | null;
+  setHoveredCountry: (country: string | null) => void;
+}) {
+  const selectedISO = selectedCountry ? countryToISO[selectedCountry] : null;
+  const destinationISO = destinationCountry ? countryToISO[destinationCountry] : null;
+  const selectedCoords = selectedCountry ? countryCoordinates[selectedCountry] : null;
+  const destinationCoords = destinationCountry ? countryCoordinates[destinationCountry] : null;
+
+  return (
+    <ComposableMap
+      projection="geoMercator"
+      projectionConfig={{
+        scale: 120,
+        center: [20, 30],
+      }}
+      style={{ width: "100%", height: "100%" }}
+    >
+      <ZoomableGroup 
+        center={[20, 30]} 
+        zoom={1} 
+        minZoom={1} 
+        maxZoom={1}
+        disablePanning={true}
+        disableZooming={true}
+      >
+        <Geographies geography={geoUrl}>
+          {({ geographies }) =>
+            geographies.map((geo) => {
+              const geoISO = geo.properties?.ISO_A3 || geo.id;
+              const isSelected = geoISO === selectedISO;
+              const isDestination = geoISO === destinationISO;
+              const isHovered = hoveredCountry === geoISO;
+
+              return (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  onMouseEnter={() => setHoveredCountry(geoISO)}
+                  onMouseLeave={() => setHoveredCountry(null)}
+                  style={{
+                    default: {
+                      fill: isSelected
+                        ? "#C45B3F"
+                        : isDestination
+                        ? "#1e3a5f"
+                        : "#f0eeea",
+                      stroke: isSelected || isDestination ? "#fff" : "#d4cfc7",
+                      strokeWidth: isSelected || isDestination ? 1.5 : 0.5,
+                      outline: "none",
+                      transition: "all 0.3s ease",
+                    },
+                    hover: {
+                      fill: isSelected
+                        ? "#a84a32"
+                        : isDestination
+                        ? "#152d4a"
+                        : "#e8e4dc",
+                      stroke: "#1e3a5f",
+                      strokeWidth: 1,
+                      outline: "none",
+                      cursor: "pointer",
+                    },
+                    pressed: {
+                      fill: isSelected ? "#8a3d2a" : "#e0dcd4",
+                      outline: "none",
+                    },
+                  }}
+                />
+              );
+            })
+          }
+        </Geographies>
+
+        {/* Flight path arc */}
+        {selectedCoords && destinationCoords && (
+          <Line
+            from={selectedCoords}
+            to={destinationCoords}
+            stroke="url(#flightGradient)"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeDasharray="6 4"
+            style={{
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
+            }}
+          />
+        )}
+
+        {/* Selected country marker (Passport) */}
+        {selectedCoords && (
+          <Marker coordinates={selectedCoords}>
+            {/* Pulsing ring effect */}
+            <circle r="12" fill="none" stroke="#C45B3F" strokeWidth="2" opacity="0.3">
+              <animate attributeName="r" from="8" to="20" dur="1.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite" />
+            </circle>
+            {/* Main marker dot */}
+            <circle r="8" fill="#C45B3F" stroke="#fff" strokeWidth="2" />
+            <circle r="3" fill="#fff" />
+            {/* Label background */}
+            <rect x="-28" y="-28" width="56" height="16" rx="8" fill="#C45B3F" />
+            <text
+              textAnchor="middle"
+              y={-16}
+              style={{
+                fontFamily: "system-ui",
+                fontSize: "8px",
+                fontWeight: "700",
+                fill: "#fff",
+                letterSpacing: "0.5px",
+              }}
+            >
+              PASSPORT
+            </text>
+          </Marker>
+        )}
+
+        {/* Destination country marker */}
+        {destinationCoords && (
+          <Marker coordinates={destinationCoords}>
+            {/* Pulsing ring effect */}
+            <circle r="12" fill="none" stroke="#1e3a5f" strokeWidth="2" opacity="0.3">
+              <animate attributeName="r" from="8" to="20" dur="1.5s" repeatCount="indefinite" begin="0.5s" />
+              <animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite" begin="0.5s" />
+            </circle>
+            {/* Main marker dot */}
+            <circle r="8" fill="#1e3a5f" stroke="#fff" strokeWidth="2" />
+            <circle r="3" fill="#fff" />
+            {/* Label background */}
+            <rect x="-38" y="-28" width="76" height="16" rx="8" fill="#1e3a5f" />
+            <text
+              textAnchor="middle"
+              y={-16}
+              style={{
+                fontFamily: "system-ui",
+                fontSize: "8px",
+                fontWeight: "700",
+                fill: "#fff",
+                letterSpacing: "0.5px",
+              }}
+            >
+              DESTINATION
+            </text>
+          </Marker>
+        )}
+
+        {/* Gradient definition for flight path */}
+        <defs>
+          <linearGradient id="flightGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#C45B3F" />
+            <stop offset="100%" stopColor="#1e3a5f" />
+          </linearGradient>
+        </defs>
+      </ZoomableGroup>
+    </ComposableMap>
+  );
+});
 
 export function WorldMap({ className = "", selectedCountry, destinationCountry }: WorldMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
+  
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
   });
 
-  // Multi-layer parallax transforms - different speeds for depth effect
-  const mapY = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const mapScale = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.08, 1.15]);
-  const mapRotate = useTransform(scrollYProgress, [0, 1], [0, 2]);
-  
-  // Grid moves slower (background layer)
-  const gridY = useTransform(scrollYProgress, [0, 1], [0, 80]);
-  const gridOpacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.5, 0.7, 0.4, 0.2]);
-  
-  // Continents move at medium speed
-  const continentsY = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  
-  // Highlights/pins move faster (foreground layer)
-  const highlightsY = useTransform(scrollYProgress, [0, 1], [0, 160]);
-  
-  // Overall opacity fade as you scroll
-  const overallOpacity = useTransform(scrollYProgress, [0, 0.8, 1], [1, 0.6, 0.3]);
+  // Parallax transforms
+  const mapY = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const mapScale = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.05, 1.1]);
+  const overallOpacity = useTransform(scrollYProgress, [0, 0.8, 1], [1, 0.7, 0.4]);
 
-  const selectedRegion = selectedCountry ? countryRegions[selectedCountry] : null;
-  const destinationRegion = destinationCountry ? countryRegions[destinationCountry] : null;
+  const handleSetHoveredCountry = useCallback((country: string | null) => {
+    setHoveredCountry(country);
+  }, []);
+
+  const hasSelection = selectedCountry || destinationCountry;
 
   return (
     <div ref={containerRef} className={`absolute inset-0 overflow-hidden ${className}`}>
       <motion.div
         style={{ 
           y: mapY, 
-          scale: mapScale, 
-          rotate: mapRotate,
+          scale: mapScale,
           opacity: overallOpacity 
         }}
         className="map-breathe absolute inset-0 flex items-center justify-center"
-        animate={{ opacity: selectedRegion || destinationRegion ? 0.7 : 0.4 }}
+        animate={{ opacity: hasSelection ? 0.85 : 0.5 }}
         transition={{ duration: 0.5 }}
       >
-        <svg
-          viewBox="0 0 600 300"
-          className="h-full w-full"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden="true"
-          style={{ overflow: "visible" }}
-        >
-          <defs>
-            {/* Gradient for path line */}
-            <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#C45B3F" />
-              <stop offset="100%" stopColor="#1e3a5f" />
-            </linearGradient>
-            
-            {/* Glow filter for highlights */}
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-
-            {/* Subtle noise pattern */}
-            <pattern id="mapNoise" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-              <rect width="100" height="100" fill="#f0eeea" />
-            </pattern>
-          </defs>
-
-          {/* Background */}
-          <rect width="600" height="300" fill="#FAF9F6" />
-
-          {/* Grid lines for subtle texture - slowest parallax layer */}
-          <motion.g 
-            stroke="#e8e6e1" 
-            strokeWidth="0.3"
-            style={{ 
-              y: gridY,
-              opacity: gridOpacity 
-            }}
-          >
-            {/* Horizontal lines */}
-            {[50, 100, 150, 200, 250].map((yPos) => (
-              <line key={`h-${yPos}`} x1="0" y1={yPos} x2="600" y2={yPos} />
-            ))}
-            {/* Vertical lines */}
-            {[100, 200, 300, 400, 500].map((x) => (
-              <line key={`v-${x}`} x1={x} y1="0" x2={x} y2="300" />
-            ))}
-          </motion.g>
-
-          {/* Continent paths - medium parallax layer */}
-          <motion.g 
-            fill="#f0eeea" 
-            stroke="#d4cfc7" 
-            strokeWidth="1.5"
-            style={{ y: continentsY }}
-          >
-            {Object.entries(continentPaths).map(([name, path]) => (
-              <motion.path
-                key={name}
-                d={path}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1, delay: 0.1 }}
-              />
-            ))}
-          </motion.g>
-
-          {/* Interactive elements - fastest parallax layer (foreground) */}
-          <motion.g style={{ y: highlightsY }}>
-          {/* Selected country highlight (passport) */}
-          {selectedRegion && (
-            <g>
-              {/* Outer pulse ring */}
-              <motion.circle
-                cx={selectedRegion.cx}
-                cy={selectedRegion.cy}
-                r={selectedRegion.r}
-                fill="none"
-                stroke="#C45B3F"
-                strokeWidth="1"
-                initial={{ scale: 1, opacity: 0.8 }}
-                animate={{ scale: 1.4, opacity: 0 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
-              />
-              {/* Main highlight */}
-              <motion.circle
-                cx={selectedRegion.cx}
-                cy={selectedRegion.cy}
-                r={selectedRegion.r}
-                fill="#C45B3F"
-                fillOpacity="0.25"
-                stroke="#C45B3F"
-                strokeWidth="2.5"
-                filter="url(#glow)"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              />
-            </g>
-          )}
-
-          {/* Destination country highlight */}
-          {destinationRegion && (
-            <g>
-              {/* Outer pulse ring */}
-              <motion.circle
-                cx={destinationRegion.cx}
-                cy={destinationRegion.cy}
-                r={destinationRegion.r}
-                fill="none"
-                stroke="#1e3a5f"
-                strokeWidth="1"
-                initial={{ scale: 1, opacity: 0.8 }}
-                animate={{ scale: 1.4, opacity: 0 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
-              />
-              {/* Main highlight */}
-              <motion.circle
-                cx={destinationRegion.cx}
-                cy={destinationRegion.cy}
-                r={destinationRegion.r}
-                fill="#1e3a5f"
-                fillOpacity="0.25"
-                stroke="#1e3a5f"
-                strokeWidth="2.5"
-                filter="url(#glow)"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-              />
-            </g>
-          )}
-
-          {/* Connection path between countries */}
-          {selectedRegion && destinationRegion && (
-            <g>
-              {/* Background path glow */}
-              <motion.path
-                d={`M ${selectedRegion.cx} ${selectedRegion.cy} Q ${(selectedRegion.cx + destinationRegion.cx) / 2} ${Math.min(selectedRegion.cy, destinationRegion.cy) - 50} ${destinationRegion.cx} ${destinationRegion.cy}`}
-                fill="none"
-                stroke="url(#pathGradient)"
-                strokeWidth="6"
-                strokeLinecap="round"
-                opacity="0.2"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
-              />
-              {/* Main path */}
-              <motion.path
-                d={`M ${selectedRegion.cx} ${selectedRegion.cy} Q ${(selectedRegion.cx + destinationRegion.cx) / 2} ${Math.min(selectedRegion.cy, destinationRegion.cy) - 50} ${destinationRegion.cx} ${destinationRegion.cy}`}
-                fill="none"
-                stroke="url(#pathGradient)"
-                strokeWidth="2.5"
-                strokeDasharray="8 4"
-                strokeLinecap="round"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
-              />
-              {/* Animated travel dot */}
-              <motion.circle
-                r="4"
-                fill="#C45B3F"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.7 }}
-              >
-                <animateMotion
-                  dur="3s"
-                  repeatCount="indefinite"
-                  path={`M ${selectedRegion.cx} ${selectedRegion.cy} Q ${(selectedRegion.cx + destinationRegion.cx) / 2} ${Math.min(selectedRegion.cy, destinationRegion.cy) - 50} ${destinationRegion.cx} ${destinationRegion.cy}`}
-                />
-              </motion.circle>
-            </g>
-          )}
-
-          {/* Map pins */}
-          {selectedRegion && (
-            <motion.g
-              initial={{ y: -30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.3 }}
-            >
-              {/* Pin shadow */}
-              <ellipse cx={selectedRegion.cx} cy={selectedRegion.cy + 2} rx="6" ry="3" fill="rgba(0,0,0,0.2)" />
-              {/* Pin body */}
-              <circle cx={selectedRegion.cx} cy={selectedRegion.cy} r="8" fill="#C45B3F" filter="url(#glow)" />
-              <circle cx={selectedRegion.cx} cy={selectedRegion.cy} r="4" fill="#fff" />
-              {/* Label */}
-              <rect x={selectedRegion.cx - 35} y={selectedRegion.cy - 28} width="70" height="18" rx="9" fill="#C45B3F" />
-              <text x={selectedRegion.cx} y={selectedRegion.cy - 16} textAnchor="middle" fill="#fff" fontSize="8" fontWeight="600">PASSPORT</text>
-            </motion.g>
-          )}
-
-          {destinationRegion && (
-            <motion.g
-              initial={{ y: -30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 15, delay: 0.4 }}
-            >
-              {/* Pin shadow */}
-              <ellipse cx={destinationRegion.cx} cy={destinationRegion.cy + 2} rx="6" ry="3" fill="rgba(0,0,0,0.2)" />
-              {/* Pin body */}
-              <circle cx={destinationRegion.cx} cy={destinationRegion.cy} r="8" fill="#1e3a5f" filter="url(#glow)" />
-              <circle cx={destinationRegion.cx} cy={destinationRegion.cy} r="4" fill="#fff" />
-              {/* Label */}
-              <rect x={destinationRegion.cx - 40} y={destinationRegion.cy - 28} width="80" height="18" rx="9" fill="#1e3a5f" />
-              <text x={destinationRegion.cx} y={destinationRegion.cy - 16} textAnchor="middle" fill="#fff" fontSize="8" fontWeight="600">DESTINATION</text>
-            </motion.g>
-          )}
-          </motion.g>
-        </svg>
+        <div className="h-full w-full" style={{ minHeight: "400px" }}>
+          <MapComponent
+            selectedCountry={selectedCountry}
+            destinationCountry={destinationCountry}
+            hoveredCountry={hoveredCountry}
+            setHoveredCountry={handleSetHoveredCountry}
+          />
+        </div>
       </motion.div>
+      
+      {/* Hover tooltip */}
+      {hoveredCountry && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pointer-events-none fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-full bg-foreground/90 px-4 py-2 text-sm text-background shadow-lg backdrop-blur-sm"
+        >
+          {hoveredCountry}
+        </motion.div>
+      )}
     </div>
   );
 }

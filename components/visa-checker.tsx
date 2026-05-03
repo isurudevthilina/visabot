@@ -618,40 +618,40 @@ export function VisaChecker() {
 
             {/* Results Content */}
             {hasResults && (
-              <div className="space-y-6">
+              <div className="space-y-8">
                 {/* TL;DR */}
                 {object?.tldr && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="tldr-box"
+                    className="rounded-lg bg-background p-5"
                   >
+                    <p className="text-sm font-medium uppercase tracking-wider text-text-muted mb-2">Summary</p>
                     <p className="text-base leading-relaxed text-foreground">
                       {object.tldr}
                     </p>
                   </motion.div>
                 )}
 
-                {/* Timeline/Steps */}
+                {/* Steps */}
                 {steps.length > 0 && (
                   <div>
-                    <h4 className="mb-4 flex items-center gap-2 font-semibold text-foreground">
-                      <FileText size={16} className="text-accent" />
+                    <h4 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
                       Steps to Follow
                     </h4>
-                    <div className="relative ml-4 border-l-2 border-border pl-6">
+                    <div className="space-y-3">
                       {steps.map((step, index) => (
                         <motion.div
                           key={index}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="relative pb-4 last:pb-0"
+                          className="flex items-start gap-4"
                         >
-                          <div className="absolute -left-[31px] flex h-6 w-6 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white">
+                          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-white">
                             {index + 1}
-                          </div>
-                          <p className="text-sm leading-relaxed text-foreground">
+                          </span>
+                          <p className="text-sm leading-relaxed text-foreground pt-1">
                             {step}
                           </p>
                         </motion.div>
@@ -663,11 +663,10 @@ export function VisaChecker() {
                 {/* Checklist */}
                 {checklist.length > 0 && (
                   <div>
-                    <h4 className="mb-3 flex items-center gap-2 font-semibold text-foreground">
-                      <Check size={16} className="text-accent" />
+                    <h4 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
                       Required Documents
                     </h4>
-                    <div className="rounded-lg border border-border">
+                    <div className="space-y-1">
                       {checklist.map((item, index) => (
                         <ChecklistItem key={index} item={item} index={index} />
                       ))}
@@ -678,86 +677,32 @@ export function VisaChecker() {
                 {/* Documents */}
                 {documents.length > 0 && (
                   <div>
-                    <h4 className="mb-3 flex items-center gap-2 font-semibold text-foreground">
-                      <Database size={16} className="text-accent" />
-                      Official Documents
+                    <h4 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
+                      Official Resources
                     </h4>
-                    <div className="space-y-2">
+                    <div className="grid gap-3 sm:grid-cols-2">
                       {documents.map((doc, index) => (
-                        <motion.div
+                        <motion.a
                           key={index}
+                          href={doc.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className="flex items-center justify-between rounded-lg border border-border p-4"
+                          className="group flex items-start gap-3 rounded-lg border border-border p-4 transition-all hover:border-accent hover:bg-background"
                         >
-                          <div className="flex-1">
-                            <p className="font-medium text-foreground">{doc.title}</p>
-                            {doc.description && (
-                              <p className="mt-1 text-sm text-text-secondary">
-                                {doc.description}
-                              </p>
-                            )}
-                            <div className="mt-2 flex items-center gap-3">
-                              {doc.confidence && (
-                                <span
-                                  className={`rounded-full px-2 py-0.5 text-xs font-medium confidence-${doc.confidence}`}
-                                >
-                                  {doc.confidence} confidence
-                                </span>
-                              )}
-                              {doc.sourceName && (
-                                <span className="text-xs text-text-muted">
-                                  {doc.sourceName}
-                                </span>
-                              )}
-                            </div>
+                          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+                            <FileText size={18} />
                           </div>
-                          <div className="ml-4 flex items-center gap-2">
-                            {doc.downloadUrl && (
-                              <a
-                                href={doc.downloadUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-secondary transition-colors hover:border-accent hover:text-accent"
-                              >
-                                <Download size={16} />
-                              </a>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground text-sm truncate group-hover:text-accent transition-colors">{doc.title}</p>
+                            {doc.sourceName && (
+                              <p className="text-xs text-text-muted mt-1">{doc.sourceName}</p>
                             )}
-                            <a
-                              href={doc.sourceUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text-secondary transition-colors hover:border-accent hover:text-accent"
-                            >
-                              <ExternalLink size={16} />
-                            </a>
                           </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sources */}
-                {sources.length > 0 && (
-                  <div>
-                    <h4 className="mb-3 flex items-center gap-2 font-semibold text-foreground">
-                      <Search size={16} className="text-accent" />
-                      Sources
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {sources.map((source, index) => (
-                        <a
-                          key={index}
-                          href={source.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="link-underline inline-flex items-center gap-1 text-sm text-text-secondary transition-colors hover:text-accent"
-                        >
-                          {source.publisher || source.title}
-                          <ExternalLink size={12} />
-                        </a>
+                          <ExternalLink size={14} className="flex-shrink-0 text-text-muted group-hover:text-accent transition-colors mt-1" />
+                        </motion.a>
                       ))}
                     </div>
                   </div>
@@ -766,8 +711,7 @@ export function VisaChecker() {
                 {/* Warnings */}
                 {warnings.length > 0 && (
                   <div>
-                    <h4 className="mb-3 flex items-center gap-2 font-semibold text-foreground">
-                      <AlertTriangle size={16} className="text-warning" />
+                    <h4 className="mb-4 text-sm font-medium uppercase tracking-wider text-warning">
                       Important Notes
                     </h4>
                     <div className="space-y-2">
@@ -777,10 +721,32 @@ export function VisaChecker() {
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className="warning-card"
+                          className="flex items-start gap-3 rounded-lg bg-warning/5 border border-warning/20 p-4"
                         >
+                          <AlertTriangle size={16} className="flex-shrink-0 text-warning mt-0.5" />
                           <p className="text-sm text-foreground">{warning}</p>
                         </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sources */}
+                {sources.length > 0 && (
+                  <div className="border-t border-border pt-6">
+                    <p className="text-xs text-text-muted mb-3">Sources</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2">
+                      {sources.map((source, index) => (
+                        <a
+                          key={index}
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-text-secondary transition-colors hover:text-accent"
+                        >
+                          {source.publisher || source.title}
+                          <ExternalLink size={10} />
+                        </a>
                       ))}
                     </div>
                   </div>
