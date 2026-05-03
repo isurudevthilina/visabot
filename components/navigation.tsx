@@ -35,13 +35,61 @@ export function Navigation() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <nav className="flex h-20 items-center justify-between">
           {/* Logo */}
-          <a href="#" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-secondary text-white">
-              <Globe2 size={20} />
+          <a href="#" className="group flex items-center gap-3">
+            <motion.div 
+              className="relative flex h-10 w-10 items-center justify-center"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+            >
+              {/* Animated ring */}
+              <motion.div 
+                className="absolute inset-0 rounded-full border-2 border-accent"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              />
+              {/* Inner circle with globe */}
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-accent-secondary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white">
+                  {/* Globe base */}
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                  {/* Latitude lines */}
+                  <ellipse cx="12" cy="12" rx="10" ry="4" stroke="currentColor" strokeWidth="1.5" />
+                  <path d="M12 2v20" stroke="currentColor" strokeWidth="1.5" />
+                  {/* Longitude curve */}
+                  <path d="M2 12c0-3 4.5-5.5 10-5.5s10 2.5 10 5.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                  {/* Airplane */}
+                  <motion.g
+                    animate={{ 
+                      rotate: [0, 360],
+                      x: [0, 2, 0, -2, 0],
+                      y: [0, -1, 0, 1, 0]
+                    }}
+                    transition={{ 
+                      rotate: { duration: 8, repeat: Infinity, ease: "linear" },
+                      x: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+                      y: { duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
+                    }}
+                    style={{ originX: "12px", originY: "12px" }}
+                  >
+                    <path d="M18 6l-1.5 1.5L15 8l1-2 2-1z" fill="currentColor" />
+                  </motion.g>
+                </svg>
+              </div>
+              {/* Decorative dots */}
+              <motion.div 
+                className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-accent"
+                animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </motion.div>
+            <div className="flex flex-col">
+              <span className="font-serif text-xl font-semibold text-foreground leading-tight">
+                VisaBot
+              </span>
+              <span className="text-[10px] uppercase tracking-widest text-text-muted">
+                Travel Smart
+              </span>
             </div>
-            <span className="font-serif text-2xl font-semibold text-foreground">
-              VisaBot
-            </span>
           </a>
 
           {/* Desktop Navigation */}
