@@ -121,7 +121,14 @@ const MapComponent = memo(function MapComponent({
       }}
       style={{ width: "100%", height: "100%" }}
     >
-      <ZoomableGroup center={[20, 30]} zoom={1} minZoom={1} maxZoom={4}>
+      <ZoomableGroup 
+        center={[20, 30]} 
+        zoom={1} 
+        minZoom={1} 
+        maxZoom={1}
+        disablePanning={true}
+        disableZooming={true}
+      >
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map((geo) => {
@@ -188,26 +195,25 @@ const MapComponent = memo(function MapComponent({
         {/* Selected country marker (Passport) */}
         {selectedCoords && (
           <Marker coordinates={selectedCoords}>
-            <g transform="translate(-12, -24)">
-              {/* Pin body */}
-              <ellipse cx="12" cy="24" rx="4" ry="2" fill="rgba(0,0,0,0.2)" />
-              <path
-                d="M12 0C7 0 3 4 3 9c0 7 9 15 9 15s9-8 9-15c0-5-4-9-9-9z"
-                fill="#C45B3F"
-                stroke="#fff"
-                strokeWidth="1"
-              />
-              <circle cx="12" cy="9" r="4" fill="#fff" />
-            </g>
+            {/* Pulsing ring effect */}
+            <circle r="12" fill="none" stroke="#C45B3F" strokeWidth="2" opacity="0.3">
+              <animate attributeName="r" from="8" to="20" dur="1.5s" repeatCount="indefinite" />
+              <animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite" />
+            </circle>
+            {/* Main marker dot */}
+            <circle r="8" fill="#C45B3F" stroke="#fff" strokeWidth="2" />
+            <circle r="3" fill="#fff" />
+            {/* Label background */}
+            <rect x="-28" y="-28" width="56" height="16" rx="8" fill="#C45B3F" />
             <text
               textAnchor="middle"
-              y={-30}
+              y={-16}
               style={{
                 fontFamily: "system-ui",
-                fontSize: "10px",
-                fontWeight: "600",
-                fill: "#C45B3F",
-                textShadow: "0 1px 2px rgba(255,255,255,0.8)",
+                fontSize: "8px",
+                fontWeight: "700",
+                fill: "#fff",
+                letterSpacing: "0.5px",
               }}
             >
               PASSPORT
@@ -218,26 +224,25 @@ const MapComponent = memo(function MapComponent({
         {/* Destination country marker */}
         {destinationCoords && (
           <Marker coordinates={destinationCoords}>
-            <g transform="translate(-12, -24)">
-              {/* Pin body */}
-              <ellipse cx="12" cy="24" rx="4" ry="2" fill="rgba(0,0,0,0.2)" />
-              <path
-                d="M12 0C7 0 3 4 3 9c0 7 9 15 9 15s9-8 9-15c0-5-4-9-9-9z"
-                fill="#1e3a5f"
-                stroke="#fff"
-                strokeWidth="1"
-              />
-              <circle cx="12" cy="9" r="4" fill="#fff" />
-            </g>
+            {/* Pulsing ring effect */}
+            <circle r="12" fill="none" stroke="#1e3a5f" strokeWidth="2" opacity="0.3">
+              <animate attributeName="r" from="8" to="20" dur="1.5s" repeatCount="indefinite" begin="0.5s" />
+              <animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite" begin="0.5s" />
+            </circle>
+            {/* Main marker dot */}
+            <circle r="8" fill="#1e3a5f" stroke="#fff" strokeWidth="2" />
+            <circle r="3" fill="#fff" />
+            {/* Label background */}
+            <rect x="-38" y="-28" width="76" height="16" rx="8" fill="#1e3a5f" />
             <text
               textAnchor="middle"
-              y={-30}
+              y={-16}
               style={{
                 fontFamily: "system-ui",
-                fontSize: "10px",
-                fontWeight: "600",
-                fill: "#1e3a5f",
-                textShadow: "0 1px 2px rgba(255,255,255,0.8)",
+                fontSize: "8px",
+                fontWeight: "700",
+                fill: "#fff",
+                letterSpacing: "0.5px",
               }}
             >
               DESTINATION
